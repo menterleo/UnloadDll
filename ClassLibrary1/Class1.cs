@@ -9,11 +9,11 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public void Run()
+        public void Run(string name)
         {
-            Console.WriteLine("OK8eeeeddd!");
-            new ClassLibrary2.Class1().Call();
-           System.Threading.Thread.Sleep(3);
+            Console.WriteLine($"{name}:lib1: OK8eeeeddd!");
+            new ClassLibrary2.Class1().Call(name);
+           System.Threading.Thread.Sleep(1000);
         }
     }
 }

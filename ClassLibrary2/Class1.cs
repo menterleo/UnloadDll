@@ -8,9 +8,11 @@ namespace ClassLibrary2
 {
     public class Class1
     {
-        public void Call()
+        public void Call(string name)
         {
-            Console.WriteLine("QQ3%%%lianghuaming");
+            Console.WriteLine($"{name}:lib2:{ss} ");
         }
+
+        public static string ss = "12346";
     }
 }

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Reflection;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace UnloadDll
 {
@@ -26,16 +27,32 @@ namespace UnloadDll
         {
             string callingDomainName = AppDomain.CurrentDomain.FriendlyName; //Thread.GetDomain().FriendlyName;             
             Console.WriteLine(callingDomainName);
-            while (true)
+            Task.Run(() =>
             {
-                AppDomain ad = AppDomain.CreateDomain("DLL Unload test");
+                while (true)
+                {
+                    AppDomain ad = AppDomain.CreateDomain("DLL Unload test1");
+                    ad.AssemblyResolve += CurrentDomain_AssemblyResolve;
+                    var instance = ad.CreateInstanceFromAndUnwrap(Assembly.GetExecutingAssembly().CodeBase, "UnloadDll.ProxyObject");
+                    ProxyObject obj = (ProxyObject)instance;
+                    obj.LoadAssembly();
+                    obj.Invoke("ClassLibrary1.Class1", "Run", "Thread1");
+                    AppDomain.Unload(ad);
+                }
+            });
+            Task.Run(() =>
+            {
+                AppDomain ad = AppDomain.CreateDomain("DLL Unload test2");
                 ad.AssemblyResolve += CurrentDomain_AssemblyResolve;
                 var instance = ad.CreateInstanceFromAndUnwrap(Assembly.GetExecutingAssembly().CodeBase, "UnloadDll.ProxyObject");
                 ProxyObject obj = (ProxyObject)instance;
                 obj.LoadAssembly();
-                obj.Invoke("ClassLibrary1.Class1", "Run", null);
+                while (true)
+                {
+                    obj.Invoke("ClassLibrary1.Class1", "Run", "Thread2");
+                }
                 AppDomain.Unload(ad);
-            }
+            }).Wait();
         }
     }
 
@@ -45,13 +62,13 @@ namespace UnloadDll
 
         public void LoadAssembly()
         {
-            string dir = @"C:\Users\bshn\Documents\visual studio 2015\Projects\ConsoleApplication4\ClassLibrary1\bin\Debug";
+            string dir = @"D:\github\UnloadDll\ClassLibrary1\bin\Debug";
             string fileName = Path.Combine(dir, "ClassLibrary1.dll");
             string fileName2 = Path.Combine(dir, "ClassLibrary2.dll");
             if (!File.Exists(fileName))
             {
                 Console.WriteLine("dll file not exists");
-                System.Threading.Thread.Sleep(1);
+                System.Threading.Thread.Sleep(1000);
                 return;
             }
             try
